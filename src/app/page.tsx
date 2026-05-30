@@ -1,23 +1,47 @@
 import Link from "next/link";
-import Image from "next/image";
-import { prisma } from "@/lib/prisma";
 import ProductGrid from "@/components/shop/ProductGrid";
 import { ArrowRight, Heart, Clock, Truck } from "lucide-react";
+import { prisma } from "@/lib/prisma";
+
+interface ProductWithStringPrice {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  category: { name: string } | null;
+  inStock: boolean;
+  featured: boolean;
+}
+
+function convertProduct(p: any): ProductWithStringPrice {
+  return {
+    id: p.id,
+    name: p.name,
+    price: Number(p.price),
+    images: p.images,
+    category: p.category ? { name: p.category.name } : null,
+    inStock: p.inStock,
+    featured: p.featured,
+  };
+}
 
 export default async function HomePage() {
-  const featuredProducts = await prisma.product.findMany({
+  const featuredProductsRaw = await prisma.product.findMany({
     where: { featured: true, inStock: true },
     include: { category: true },
     take: 4,
     orderBy: { createdAt: "desc" },
   });
 
-  const latestProducts = await prisma.product.findMany({
+  const latestProductsRaw = await prisma.product.findMany({
     where: { inStock: true },
     include: { category: true },
     take: 8,
     orderBy: { createdAt: "desc" },
   });
+
+  const featuredProducts = featuredProductsRaw.map(convertProduct);
+  const latestProducts = latestProductsRaw.map(convertProduct);
 
   return (
     <div>

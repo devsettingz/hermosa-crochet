@@ -10,6 +10,16 @@ import {
   CreditCard,
 } from "lucide-react";
 
+interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  product: {
+    name: string;
+    images: string[];
+  };
+}
+
 interface Order {
   id: string;
   customerName: string;
@@ -24,15 +34,7 @@ interface Order {
   paymentMethod: string | null;
   paymentNote: string | null;
   createdAt: string;
-  items: {
-    id: string;
-    quantity: number;
-    price: number;
-    product: {
-      name: string;
-      images: string[];
-    };
-  }[];
+  items: OrderItem[];
 }
 
 export default function OrdersPage() {
@@ -48,7 +50,15 @@ export default function OrdersPage() {
   const fetchOrders = async () => {
     const res = await fetch("/api/orders");
     const data = await res.json();
-    setOrders(data);
+    const converted: Order[] = data.map((o: any) => ({
+      ...o,
+      totalAmount: Number(o.totalAmount),
+      items: o.items.map((item: any) => ({
+        ...item,
+        price: Number(item.price),
+      })),
+    }));
+    setOrders(converted);
     setLoading(false);
   };
 
@@ -107,12 +117,11 @@ export default function OrdersPage() {
       <h1 className="text-2xl font-bold text-[#F5F0EB] mb-8">Orders</h1>
 
       <div className="space-y-4">
-        {orders.map((order) => (
+        {orders.map((order: Order) => (
           <div
             key={order.id}
             className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden"
           >
-            {/* Header */}
             <div
               className="p-4 flex items-center justify-between cursor-pointer hover:bg-[#0a0a0a]/50 transition-colors"
               onClick={() =>
@@ -150,11 +159,9 @@ export default function OrdersPage() {
               </div>
             </div>
 
-            {/* Expanded */}
             {expandedId === order.id && (
               <div className="px-4 pb-4 border-t border-[#1a1a1a]">
                 <div className="py-4 space-y-4">
-                  {/* Customer & Shipping */}
                   <div className="grid md:grid-cols-2 gap-4 text-sm">
                     <div className="space-y-2">
                       <p className="text-[#666] font-medium">Customer</p>
@@ -169,11 +176,10 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  {/* Items */}
                   <div>
                     <p className="text-[#666] text-sm font-medium mb-2">Items</p>
                     <div className="space-y-2">
-                      {order.items.map((item) => (
+                      {order.items.map((item: OrderItem) => (
                         <div
                           key={item.id}
                           className="flex items-center gap-3 bg-[#0a0a0a] p-3 rounded-lg"
@@ -204,7 +210,6 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  {/* Payment Section */}
                   <div className="bg-[#0a0a0a] p-4 rounded-lg space-y-3">
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-[#D4A574]" />

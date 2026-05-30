@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles, Instagram, Mail, Phone } from "lucide-react";
+import { Sparkles, Mail, Phone, Globe } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -68,7 +68,7 @@ export default function Footer() {
                 <span>+234 XXX XXX XXXX</span>
               </li>
               <li className="flex items-center gap-2 text-sm text-[#888]">
-                <Instagram className="w-4 h-4 text-[#D4A574]" />
+                <Globe className="w-4 h-4 text-[#D4A574]" />
                 <span>@hermosa.crochet</span>
               </li>
             </ul>

@@ -3,12 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
-    // Calculate delivery date if deliveryDays is provided
     let deliveryDate = body.deliveryDate;
     if (body.deliveryDays && !deliveryDate) {
       const date = new Date();
@@ -17,7 +17,7 @@ export async function PUT(
     }
 
     const order = await prisma.customOrder.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status: body.status,
         approved: body.approved,

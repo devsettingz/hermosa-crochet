@@ -3,6 +3,32 @@ import StatsCard from "@/components/admin/StatsCard";
 import { Package, ClipboardList, ShoppingCart, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
+interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  product: {
+    name: string;
+    images: string[];
+  };
+}
+
+interface Order {
+  id: string;
+  customerName: string;
+  totalAmount: number;
+  status: string;
+  paymentStatus: string;
+  items: OrderItem[];
+}
+
+interface CustomOrder {
+  id: string;
+  itemType: string;
+  customerName: string;
+  budgetRange: string | null;
+}
+
 export default async function AdminDashboard() {
   const [
     totalProducts,
@@ -22,13 +48,43 @@ export default async function AdminDashboard() {
       take: 5,
       orderBy: { createdAt: "desc" },
       include: { items: { include: { product: true } } },
-    }),
+    }) as unknown as Order[],
     prisma.customOrder.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
       where: { status: "PENDING" },
-    }),
+    }) as unknown as CustomOrder[],
   ]);
+
+  const getOrderStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-yellow-500/10 text-yellow-500";
+      case "CONFIRMED":
+        return "bg-blue-500/10 text-blue-500";
+      case "PROCESSING":
+        return "bg-purple-500/10 text-purple-400";
+      case "SHIPPED":
+        return "bg-orange-500/10 text-orange-400";
+      case "DELIVERED":
+        return "bg-green-500/10 text-green-500";
+      case "CANCELLED":
+        return "bg-red-500/10 text-red-400";
+      default:
+        return "bg-[#1a1a1a] text-[#888]";
+    }
+  };
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "PAID":
+        return "bg-green-500/10 text-green-500";
+      case "PARTIAL":
+        return "bg-yellow-500/10 text-yellow-500";
+      default:
+        return "bg-red-500/10 text-red-400";
+    }
+  };
 
   return (
     <div>
@@ -78,7 +134,7 @@ export default async function AdminDashboard() {
             <p className="text-[#666] text-sm">No orders yet</p>
           ) : (
             <div className="space-y-4">
-              {recentOrders.map((order) => (
+              {recentOrders.map((order: Order) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between p-3 bg-[#0a0a0a] rounded-lg"
@@ -92,17 +148,22 @@ export default async function AdminDashboard() {
                       {order.items.length} items
                     </p>
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      order.status === "PENDING"
-                        ? "bg-yellow-500/10 text-yellow-500"
-                        : order.status === "PAID"
-                        ? "bg-green-500/10 text-green-500"
-                        : "bg-[#1a1a1a] text-[#888]"
-                    }`}
-                  >
-                    {order.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(
+                        order.status
+                      )}`}
+                    >
+                      {order.status}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getPaymentStatusColor(
+                        order.paymentStatus
+                      )}`}
+                    >
+                      {order.paymentStatus}
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -126,7 +187,7 @@ export default async function AdminDashboard() {
             <p className="text-[#666] text-sm">No pending custom orders</p>
           ) : (
             <div className="space-y-4">
-              {recentCustomOrders.map((order) => (
+              {recentCustomOrders.map((order: CustomOrder) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between p-3 bg-[#0a0a0a] rounded-lg"

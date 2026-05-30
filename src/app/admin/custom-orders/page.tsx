@@ -5,8 +5,6 @@ import { formatDate } from "@/lib/utils";
 import {
   CheckCircle,
   XCircle,
-  Clock,
-  MessageSquare,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -31,15 +29,17 @@ interface CustomOrder {
   createdAt: string;
 }
 
+interface ActionData {
+  price: string;
+  deliveryDays: string;
+  adminNotes: string;
+}
+
 export default function CustomOrdersPage() {
-  const [orders, setOrders] = useState<<CustomOrder[]>([]);
+  const [orders, setOrders] = useState<CustomOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [actionData, setActionData] = useState<<{
-    price: string;
-    deliveryDays: string;
-    adminNotes: string;
-  }>({ price: "", deliveryDays: "", adminNotes: "" });
+  const [actionData, setActionData] = useState<ActionData>({ price: "", deliveryDays: "", adminNotes: "" });
 
   useEffect(() => {
     fetchOrders();
@@ -48,7 +48,14 @@ export default function CustomOrdersPage() {
   const fetchOrders = async () => {
     const res = await fetch("/api/custom-orders");
     const data = await res.json();
-    setOrders(data);
+    const converted: CustomOrder[] = data.map((o: any) => ({
+      ...o,
+      price: o.price ? Number(o.price) : null,
+      deliveryDays: o.deliveryDays,
+      deliveryDate: o.deliveryDate,
+      createdAt: o.createdAt,
+    }));
+    setOrders(converted);
     setLoading(false);
   };
 
@@ -121,12 +128,11 @@ export default function CustomOrdersPage() {
       <h1 className="text-2xl font-bold text-[#F5F0EB] mb-8">Custom Orders</h1>
 
       <div className="space-y-4">
-        {orders.map((order) => (
+        {orders.map((order: CustomOrder) => (
           <div
             key={order.id}
             className="bg-[#111] border border-[#1a1a1a] rounded-xl overflow-hidden"
           >
-            {/* Header */}
             <div
               className="p-4 flex items-center justify-between cursor-pointer hover:bg-[#0a0a0a]/50 transition-colors"
               onClick={() =>
@@ -137,7 +143,7 @@ export default function CustomOrdersPage() {
                 <div>
                   <p className="font-semibold text-[#F5F0EB]">{order.itemType}</p>
                   <p className="text-sm text-[#888]">
-                    {order.customerName} • {order.customerPhone}
+                    {order.customerName} &bull; {order.customerPhone}
                   </p>
                 </div>
               </div>
@@ -157,11 +163,9 @@ export default function CustomOrdersPage() {
               </div>
             </div>
 
-            {/* Expanded Details */}
             {expandedId === order.id && (
               <div className="px-4 pb-4 border-t border-[#1a1a1a]">
                 <div className="py-4 space-y-4">
-                  {/* Customer Info */}
                   <div className="grid md:grid-cols-3 gap-4 text-sm">
                     <div>
                       <p className="text-[#666]">Email</p>
@@ -179,7 +183,6 @@ export default function CustomOrdersPage() {
                     </div>
                   </div>
 
-                  {/* Description */}
                   <div>
                     <p className="text-[#666] text-sm mb-1">Description</p>
                     <p className="text-[#e5e5e5] text-sm bg-[#0a0a0a] p-3 rounded-lg">
@@ -187,7 +190,6 @@ export default function CustomOrdersPage() {
                     </p>
                   </div>
 
-                  {/* Colors & Size */}
                   <div className="flex gap-6 text-sm">
                     {order.preferredColors && (
                       <div>
@@ -203,12 +205,11 @@ export default function CustomOrdersPage() {
                     )}
                   </div>
 
-                  {/* Reference Images */}
                   {order.referenceImages.length > 0 && (
                     <div>
                       <p className="text-[#666] text-sm mb-2">Reference Images</p>
                       <div className="flex flex-wrap gap-2">
-                        {order.referenceImages.map((img, i) => (
+                        {order.referenceImages.map((img: string, i: number) => (
                           <a
                             key={i}
                             href={img}
@@ -226,15 +227,14 @@ export default function CustomOrdersPage() {
                     </div>
                   )}
 
-                  {/* Approved Details */}
                   {order.approved && (
                     <div className="bg-[#0a0a0a] p-4 rounded-lg space-y-2">
                       <p className="text-sm font-semibold text-[#D4A574]">
                         Approved Details
                       </p>
-                      {order.price && (
+                      {order.price !== null && (
                         <p className="text-sm text-[#F5F0EB]">
-                          Price: ₦{Number(order.price).toLocaleString()}
+                          Price: &#8358;{order.price.toLocaleString()}
                         </p>
                       )}
                       {order.deliveryDays && (
@@ -255,13 +255,12 @@ export default function CustomOrdersPage() {
                     </div>
                   )}
 
-                  {/* Actions */}
                   {order.status === "PENDING" && (
                     <div className="space-y-3">
                       <div className="grid md:grid-cols-3 gap-3">
                         <div>
                           <label className="block text-xs text-[#888] mb-1">
-                            Set Price (₦)
+                            Set Price (&#8358;)
                           </label>
                           <input
                             type="number"

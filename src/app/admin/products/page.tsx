@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { UploadButton } from "@uploadthing/react";
 import { OurFileRouter } from "@/lib/uploadthing";
 import { formatPrice } from "@/lib/utils";
-import { Plus, Trash2, Edit, X, Check } from "lucide-react";
+import { Plus, Trash2, Edit, X } from "lucide-react";
 
 interface Product {
   id: string;
@@ -14,7 +14,7 @@ interface Product {
   images: string[];
   inStock: boolean;
   featured: boolean;
-  category: { name: string } | null;
+  category: { id: string; name: string } | null;
 }
 
 interface Category {
@@ -24,7 +24,7 @@ interface Category {
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -52,7 +52,6 @@ export default function ProductsPage() {
   };
 
   const fetchCategories = async () => {
-    // We'll add categories API later, for now just fetch from products
     const res = await fetch("/api/products");
     const data = await res.json();
     const cats = [...new Set(data.map((p: Product) => p.category?.name).filter(Boolean))];
@@ -126,7 +125,6 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      {/* Form */}
       {showForm && (
         <form
           onSubmit={handleSubmit}
@@ -197,10 +195,9 @@ export default function ProductsPage() {
             </label>
           </div>
 
-          {/* Image Upload */}
           <div>
             <label className="block text-sm text-[#888] mb-2">Images</label>
-            <UploadButton<<OurFileRouter, "imageUploader">
+            <UploadButton<OurFileRouter, "imageUploader">
               endpoint="imageUploader"
               onClientUploadComplete={(res) => {
                 if (res) {
@@ -254,7 +251,6 @@ export default function ProductsPage() {
         </form>
       )}
 
-      {/* Products Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
           <div

@@ -1,20 +1,16 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { UploadButton } from "@uploadthing/react";
 import { OurFileRouter } from "@/lib/uploadthing";
-import { Send, Upload, CheckCircle } from "lucide-react";
+import { Send, CheckCircle } from "lucide-react";
 
 export default function CustomOrderPage() {
-  const searchParams = useSearchParams();
-  const productId = searchParams.get("product");
-
   const [formData, setFormData] = useState({
     customerName: "",
     customerEmail: "",
     customerPhone: "",
-    itemType: productId ? "Existing Product" : "",
+    itemType: "",
     description: "",
     preferredColors: "",
     size: "",
@@ -26,7 +22,7 @@ export default function CustomOrderPage() {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -87,7 +83,6 @@ export default function CustomOrderPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Customer Info */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-[#F5F0EB] mb-2">
@@ -134,7 +129,6 @@ export default function CustomOrderPage() {
           />
         </div>
 
-        {/* Order Details */}
         <div>
           <label className="block text-sm font-medium text-[#F5F0EB] mb-2">
             What do you want? (Item Type) *
@@ -205,20 +199,19 @@ export default function CustomOrderPage() {
             className="w-full bg-[#111] border border-[#1a1a1a] rounded-lg px-4 py-3 text-[#F5F0EB] focus:border-[#D4A574] focus:outline-none transition-colors"
           >
             <option value="">Select budget range</option>
-            <option value="₦5,000 - ₦10,000">₦5,000 - ₦10,000</option>
-            <option value="₦10,000 - ₦20,000">₦10,000 - ₦20,000</option>
-            <option value="₦20,000 - ₦50,000">₦20,000 - ₦50,000</option>
-            <option value="₦50,000+">₦50,000+</option>
+            <option value="N5,000 - N10,000">N5,000 - N10,000</option>
+            <option value="N10,000 - N20,000">N10,000 - N20,000</option>
+            <option value="N20,000 - N50,000">N20,000 - N50,000</option>
+            <option value="N50,000+">N50,000+</option>
           </select>
         </div>
 
-        {/* Image Upload */}
         <div>
           <label className="block text-sm font-medium text-[#F5F0EB] mb-2">
             Reference Images (Optional)
           </label>
           <div className="bg-[#111] border border-[#1a1a1a] border-dashed rounded-lg p-6 text-center">
-            <UploadButton<<OurFileRouter, "imageUploader">
+            <UploadButton<OurFileRouter, "imageUploader">
               endpoint="imageUploader"
               onClientUploadComplete={(res) => {
                 if (res) {
@@ -236,7 +229,7 @@ export default function CustomOrderPage() {
             />
             {images.length > 0 && (
               <div className="mt-4 flex flex-wrap gap-2">
-                {images.map((img, i) => (
+                {images.map((img: string, i: number) => (
                   <div
                     key={i}
                     className="w-20 h-20 rounded-lg overflow-hidden border border-[#1a1a1a]"

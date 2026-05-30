@@ -13,6 +13,7 @@ interface ProductCardProps {
     images: string[];
     category?: { name: string } | null;
     inStock: boolean;
+    featured?: boolean;
   };
 }
 

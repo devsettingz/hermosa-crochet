@@ -3,19 +3,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
-import { ArrowLeft, ShoppingBag, Heart, Check } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Check } from "lucide-react";
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
+  const { id } = await params;
   const product = await prisma.product.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { category: true },
   });
 
   if (!product) notFound();
+
+  const price = Number(product.price);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -46,7 +49,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
           </div>
           {product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(1, 5).map((img, i) => (
+              {product.images.slice(1, 5).map((img: string, i: number) => (
                 <div
                   key={i}
                   className="aspect-square bg-[#111] rounded-lg border border-[#1a1a1a] overflow-hidden relative"
@@ -74,7 +77,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {product.name}
           </h1>
           <p className="mt-4 text-3xl font-bold text-[#D4A574]">
-            {formatPrice(product.price)}
+            {formatPrice(price)}
           </p>
 
           <div className="mt-6 flex items-center gap-4">
