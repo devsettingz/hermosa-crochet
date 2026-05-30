@@ -26,22 +26,35 @@ function convertProduct(p: any): ProductWithStringPrice {
 }
 
 export default async function HomePage() {
-  const featuredProductsRaw = await prisma.product.findMany({
-    where: { featured: true, inStock: true },
-    include: { category: true },
-    take: 4,
-    orderBy: { createdAt: "desc" },
-  });
+  let featuredProducts: ProductWithStringPrice[] = [];
+  let latestProducts: ProductWithStringPrice[] = [];
+  let dbError = false;
 
-  const latestProductsRaw = await prisma.product.findMany({
-    where: { inStock: true },
-    include: { category: true },
-    take: 8,
-    orderBy: { createdAt: "desc" },
-  });
+  try {
+    const featuredProductsRaw = await prisma.product.findMany({
+      where: { featured: true, inStock: true },
+      include: { category: true },
+      take: 4,
+      orderBy: { createdAt: "desc" },
+    });
+    featuredProducts = featuredProductsRaw.map(convertProduct);
+  } catch (e) {
+    console.error("Featured products error:", e);
+    dbError = true;
+  }
 
-  const featuredProducts = featuredProductsRaw.map(convertProduct);
-  const latestProducts = latestProductsRaw.map(convertProduct);
+  try {
+    const latestProductsRaw = await prisma.product.findMany({
+      where: { inStock: true },
+      include: { category: true },
+      take: 8,
+      orderBy: { createdAt: "desc" },
+    });
+    latestProducts = latestProductsRaw.map(convertProduct);
+  } catch (e) {
+    console.error("Latest products error:", e);
+    dbError = true;
+  }
 
   return (
     <div>
@@ -130,6 +143,17 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* DB Error Warning */}
+      {dbError && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-4 text-center">
+            <p className="text-yellow-500 text-sm">
+              Database connection issue detected. Products may not load. Check your DATABASE_URL in Vercel Environment Variables.
+            </p>
+          </div>
+        </section>
+      )}
+
       {/* Featured Products */}
       {featuredProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -147,18 +171,20 @@ export default async function HomePage() {
       )}
 
       {/* Latest Products */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold text-[#F5F0EB]">Latest Arrivals</h2>
-          <Link
-            href="/shop"
-            className="text-sm text-[#D4A574] hover:text-[#C4956A] font-medium flex items-center gap-1"
-          >
-            View All <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <ProductGrid products={latestProducts} />
-      </section>
+      {latestProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-[#F5F0EB]">Latest Arrivals</h2>
+            <Link
+              href="/shop"
+              className="text-sm text-[#D4A574] hover:text-[#C4956A] font-medium flex items-center gap-1"
+            >
+              View All <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <ProductGrid products={latestProducts} />
+        </section>
+      )}
 
       {/* Custom Order CTA */}
       <section className="bg-[#111] border-y border-[#1a1a1a]">
@@ -167,7 +193,7 @@ export default async function HomePage() {
             Want Something Unique?
           </h2>
           <p className="text-[#888] max-w-xl mx-auto mb-8">
-            Have a design in mind? Send us your idea and we'll create a custom
+            Have a design in mind? Send us your idea and we will create a custom
             crochet piece just for you. Hermosa will review and set her own
             timeline.
           </p>
